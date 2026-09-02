@@ -88,3 +88,9 @@ def _apply_correction(class_session: str, student: str, new_status: str, request
 		f"Attendance corrected for {student} to {new_status} via approved "
 		f"Attendance Correction Request {request_name}",
 	)
+
+	from rub_attendance.rub_attendance.doctype.attendance_summary.attendance_summary import (
+		rebuild_summary,
+	)
+
+	rebuild_summary(student, session.course_offering)

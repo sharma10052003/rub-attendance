@@ -65,6 +65,12 @@ class ClassSession(Document):
 		if not self.submitted_at:
 			self.submitted_at = now_datetime()
 
+		from rub_attendance.rub_attendance.doctype.attendance_summary.attendance_summary import (
+			rebuild_all_for_session,
+		)
+
+		rebuild_all_for_session(self.name)
+
 	@frappe.whitelist()
 	def cancel_session(self, reason: str):
 		"""A cancelled session is a real, visible record — distinguishable from

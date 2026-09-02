@@ -30,10 +30,21 @@ permission_query_conditions = {
 	"Course Offering": "rub_attendance.permissions.course_offering_query_conditions",
 	"Course Enrolment": "rub_attendance.permissions.course_enrolment_query_conditions",
 	"Class Session": "rub_attendance.permissions.class_session_query_conditions",
+	"Attendance Summary": "rub_attendance.permissions.attendance_summary_query_conditions",
 }
 
 has_permission = {
 	"Student": "rub_attendance.permissions.student_has_permission",
 	"Course Offering": "rub_attendance.permissions.course_offering_has_permission",
 	"Class Session": "rub_attendance.permissions.class_session_has_permission",
+}
+
+# Safety-net rebuild — the primary update path is rebuild_summary/
+# rebuild_all_for_session called directly from Class Session's on_submit
+# and Attendance Correction Request's approval (see those files). This
+# nightly run only catches drift from something those two missed.
+scheduler_events = {
+	"daily": [
+		"rub_attendance.rub_attendance.doctype.attendance_summary.attendance_summary.rebuild_all",
+	],
 }

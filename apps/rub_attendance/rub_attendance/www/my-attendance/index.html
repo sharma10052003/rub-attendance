@@ -1,0 +1,237 @@
+{% extends "templates/web.html" %}
+
+{% block title %}My Attendance{% endblock %}
+
+{% block page_content %}
+<style>
+	* { box-sizing: border-box; }
+	.ma-wrap { max-width: 640px; margin: 0 auto; padding: 12px; font-size: 16px; }
+	.ma-notice {
+		background: #eff6ff; border: 1px solid #bfdbfe; color: #1e3a8a;
+		padding: 10px; border-radius: 8px; margin-bottom: 16px; font-size: 14px;
+	}
+	.ma-card { border: 1px solid #e5e7eb; border-radius: 10px; padding: 14px; margin-bottom: 12px; }
+	.ma-card-head { display: flex; justify-content: space-between; align-items: baseline; cursor: pointer; }
+	.ma-pct { font-size: 22px; font-weight: 700; }
+	.ma-pct.low { color: #b45309; }
+	.ma-below-banner {
+		background: #fef3c7; border: 1px solid #f59e0b; color: #78350f;
+		padding: 8px; border-radius: 6px; font-size: 13px; margin-top: 8px;
+	}
+	.ma-counts { font-size: 13px; color: #555; margin-top: 6px; }
+	.ma-sessions { margin-top: 10px; display: none; }
+	.ma-sessions.open { display: block; }
+	.ma-session-row {
+		display: flex; justify-content: space-between; align-items: center;
+		padding: 8px 0; border-top: 1px solid #f1f1f1; font-size: 14px;
+	}
+	.ma-status-pill {
+		padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; color: #fff;
+	}
+	.ma-status-pill.Present { background: #16a34a; }
+	.ma-status-pill.Absent { background: #dc2626; }
+	.ma-status-pill.Late { background: #ca8a04; }
+	.ma-status-pill.Excused { background: #4f46e5; }
+	.ma-dispute-btn {
+		background: none; border: 1px solid #94a3b8; border-radius: 6px;
+		padding: 4px 8px; font-size: 12px; margin-left: 8px;
+	}
+	.ma-dispute-form { margin-top: 8px; display: none; }
+	.ma-dispute-form.open { display: block; }
+	.ma-dispute-form textarea { width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc; }
+	.ma-dispute-form button {
+		margin-top: 6px; padding: 8px 14px; border: none; border-radius: 6px;
+		background: #2563eb; color: #fff; font-weight: 600;
+	}
+	.ma-dispute-status { font-size: 12px; color: #555; margin-top: 6px; }
+	.ma-hidden { display: none; }
+</style>
+
+<div class="ma-wrap">
+	<h2>My Attendance{% if student %} — {{ student.student_name }}{% endif %}</h2>
+
+	{% if no_student_record %}
+	<p>No Student record is linked to your account yet. Contact Registry.</p>
+	{% else %}
+
+	<div class="ma-notice">
+		A low percentage below your programme's policy threshold is shown for your own
+		awareness only. It does not by itself affect your exam eligibility — that decision, if
+		it comes up, is always made by a person, not this page.
+	</div>
+
+	<div id="ma-list"></div>
+	{% endif %}
+</div>
+
+<script>
+(function () {
+	"use strict";
+	if ({{ "true" if no_student_record else "false" }}) { return; }
+
+	var CSRF_TOKEN = "{{ csrf_token }}";
+
+	function callMethod(method, args) {
+		return fetch("/api/method/" + method, {
+			method: "POST",
+			credentials: "same-origin",
+			headers: {
+				"X-Frappe-CSRF-Token": CSRF_TOKEN,
+				"Content-Type": "application/json",
+				"Accept": "application/json",
+			},
+			body: JSON.stringify(args || {}),
+		}).then(function (res) {
+			if (!res.ok) {
+				return res.json().catch(function () { return {}; }).then(function (body) {
+					throw new Error((body && body.exception) || ("HTTP " + res.status));
+				});
+			}
+			return res.json().then(function (data) { return data.message; });
+		});
+	}
+
+	function loadSummary() {
+		callMethod("rub_attendance.api.student_portal.get_my_attendance", {})
+			.then(renderSummary)
+			.catch(function (err) {
+				document.getElementById("ma-list").textContent = "Could not load: " + err.message;
+			});
+	}
+
+	function renderSummary(data) {
+		var list = document.getElementById("ma-list");
+		list.innerHTML = "";
+
+		if (!data.summary.length) {
+			list.textContent = "No attendance recorded yet.";
+			return;
+		}
+
+		data.summary.forEach(function (row) {
+			var card = document.createElement("div");
+			card.className = "ma-card";
+
+			var head = document.createElement("div");
+			head.className = "ma-card-head";
+			head.innerHTML =
+				"<span>" + row.course_title + "</span>" +
+				"<span class=\"ma-pct" + (row.below_threshold ? " low" : "") + "\">" +
+				row.percentage.toFixed(1) + "%</span>";
+
+			var counts = document.createElement("div");
+			counts.className = "ma-counts";
+			counts.textContent =
+				row.sessions_held + " sessions — Present " + row.present_count +
+				", Absent " + row.absent_count + ", Late " + row.late_count +
+				", Excused " + row.excused_count;
+
+			card.appendChild(head);
+			card.appendChild(counts);
+
+			if (row.below_threshold) {
+				var banner = document.createElement("div");
+				banner.className = "ma-below-banner";
+				banner.textContent = "Below your programme's attendance threshold.";
+				card.appendChild(banner);
+			}
+
+			var sessionsEl = document.createElement("div");
+			sessionsEl.className = "ma-sessions";
+			card.appendChild(sessionsEl);
+
+			head.addEventListener("click", function () {
+				sessionsEl.classList.toggle("open");
+				if (sessionsEl.classList.contains("open") && !sessionsEl.dataset.loaded) {
+					loadSessions(row.course_offering, sessionsEl);
+					sessionsEl.dataset.loaded = "1";
+				}
+			});
+
+			list.appendChild(card);
+		});
+	}
+
+	function loadSessions(courseOffering, container) {
+		container.textContent = "Loading…";
+		callMethod("rub_attendance.api.student_portal.get_my_sessions", { course_offering: courseOffering })
+			.then(function (data) {
+				container.innerHTML = "";
+				data.sessions.forEach(function (s) {
+					container.appendChild(renderSessionRow(s));
+				});
+			})
+			.catch(function (err) {
+				container.textContent = "Could not load sessions: " + err.message;
+			});
+	}
+
+	function renderSessionRow(s) {
+		var wrap = document.createElement("div");
+
+		var row = document.createElement("div");
+		row.className = "ma-session-row";
+
+		var left = document.createElement("span");
+		left.textContent = s.scheduled_date;
+
+		var right = document.createElement("span");
+		var pill = document.createElement("span");
+		pill.className = "ma-status-pill " + s.status;
+		pill.textContent = s.status;
+		right.appendChild(pill);
+
+		var disputeBtn = document.createElement("button");
+		disputeBtn.type = "button";
+		disputeBtn.className = "ma-dispute-btn";
+		disputeBtn.textContent = "Dispute";
+		right.appendChild(disputeBtn);
+
+		row.appendChild(left);
+		row.appendChild(right);
+		wrap.appendChild(row);
+
+		var form = document.createElement("div");
+		form.className = "ma-dispute-form";
+		var textarea = document.createElement("textarea");
+		textarea.rows = 2;
+		textarea.placeholder = "Explain why this mark is wrong…";
+		var submitBtn = document.createElement("button");
+		submitBtn.type = "button";
+		submitBtn.textContent = "Submit Dispute";
+		var statusLine = document.createElement("div");
+		statusLine.className = "ma-dispute-status";
+
+		form.appendChild(textarea);
+		form.appendChild(submitBtn);
+		form.appendChild(statusLine);
+		wrap.appendChild(form);
+
+		disputeBtn.addEventListener("click", function () {
+			form.classList.toggle("open");
+		});
+
+		submitBtn.addEventListener("click", function () {
+			if (!textarea.value.trim()) {
+				statusLine.textContent = "Please explain your claim first.";
+				return;
+			}
+			statusLine.textContent = "Submitting…";
+			callMethod("rub_attendance.api.student_portal.raise_dispute", {
+				class_session: s.class_session,
+				claim: textarea.value.trim(),
+			}).then(function (result) {
+				statusLine.textContent = "Submitted (status: " + result.status + "). " + result.note;
+				disputeBtn.disabled = true;
+			}).catch(function (err) {
+				statusLine.textContent = "Could not submit: " + err.message;
+			});
+		});
+
+		return wrap;
+	}
+
+	loadSummary();
+})();
+</script>
+{% endblock %}

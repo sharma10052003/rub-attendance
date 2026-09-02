@@ -189,12 +189,22 @@ def submit(class_session: str, rows, client_marked_at: str = None):
 	if is_edit_after_submit:
 		session.flags.ignore_validate_update_after_submit = True
 		session.save(ignore_permissions=False)
+		frappe.db.commit()
+		_rebuild_summaries_for(session.name)
 	elif session.docstatus == 0:
 		session.save(ignore_permissions=False)
-		session.submit()
+		session.submit()  # rebuilds summaries itself via on_submit
+		frappe.db.commit()
 
-	frappe.db.commit()
 	return get_session(session.course_offering, str(session.scheduled_date))
+
+
+def _rebuild_summaries_for(class_session: str):
+	from rub_attendance.rub_attendance.doctype.attendance_summary.attendance_summary import (
+		rebuild_all_for_session,
+	)
+
+	rebuild_all_for_session(class_session)
 
 
 @frappe.whitelist()

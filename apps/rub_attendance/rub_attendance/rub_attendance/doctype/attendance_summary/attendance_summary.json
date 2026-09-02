@@ -1,0 +1,187 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "hash",
+ "creation": "2026-09-02 00:00:00.000000",
+ "description": "Precomputed only — never written to directly. Rebuilt by rub_attendance.rub_attendance.doctype.attendance_summary.attendance_summary.rebuild_summary after every Class Session submit/correction, and by the nightly scheduled job as a safety net. Every dashboard, report, and threshold check must read this table, never raw Class Session Student rows (SPEC.md performance rule).",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "student",
+  "course_offering",
+  "semester",
+  "column_break_1",
+  "college",
+  "last_rebuilt_at",
+  "counts_section",
+  "sessions_held",
+  "present_count",
+  "column_break_2",
+  "absent_count",
+  "late_count",
+  "excused_count",
+  "percentage",
+  "below_threshold"
+ ],
+ "fields": [
+  {
+   "fieldname": "student",
+   "fieldtype": "Link",
+   "label": "Student",
+   "options": "Student",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "course_offering",
+   "fieldtype": "Link",
+   "label": "Course Offering",
+   "options": "Course Offering",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "semester",
+   "fieldtype": "Link",
+   "label": "Semester",
+   "options": "Semester",
+   "fetch_from": "course_offering.semester",
+   "read_only": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "college",
+   "fieldtype": "Link",
+   "label": "College",
+   "options": "College",
+   "fetch_from": "course_offering.college",
+   "read_only": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "last_rebuilt_at",
+   "fieldtype": "Datetime",
+   "label": "Last Rebuilt At",
+   "read_only": 1
+  },
+  {
+   "fieldname": "counts_section",
+   "fieldtype": "Section Break",
+   "label": "Counts"
+  },
+  {
+   "default": "0",
+   "fieldname": "sessions_held",
+   "fieldtype": "Int",
+   "label": "Sessions Held",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "present_count",
+   "fieldtype": "Int",
+   "label": "Present",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "absent_count",
+   "fieldtype": "Int",
+   "label": "Absent",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "late_count",
+   "fieldtype": "Int",
+   "label": "Late",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "excused_count",
+   "fieldtype": "Int",
+   "label": "Excused",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "percentage",
+   "fieldtype": "Percent",
+   "label": "Attendance Percentage",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "below_threshold",
+   "fieldtype": "Check",
+   "label": "Below Policy Threshold",
+   "read_only": 1,
+   "description": "Informational only — SPEC.md: the system flags, a human decides. Never used to bar exam eligibility automatically."
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-09-02 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Rub Attendance",
+ "name": "Attendance Summary",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Registry",
+   "write": 1
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "HOD"
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "Programme Coordinator"
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "Lecturer"
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "RUB Academic Administrator"
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -250,6 +250,52 @@ def course_offering_has_permission(doc, user, permission_type=None):
 
 
 # ---------------------------------------------------------------------------
+# Attendance Summary
+# ---------------------------------------------------------------------------
+
+
+def attendance_summary_query_conditions(user):
+	user = user or frappe.session.user
+	if user == "Administrator":
+		return _no_restriction()
+
+	roles = _roles(user)
+	if _has_any(roles, GLOBAL_READ_ROLES) or "College Administrator" in roles:
+		return _no_restriction()
+	if "RUB Academic Administrator" in roles:
+		return _no_restriction()  # aggregates only — this doctype IS the aggregate, so this is fine
+
+	if "HOD" in roles:
+		return f"""`tabAttendance Summary`.course_offering in (
+			select co.name from `tabCourse Offering` co
+			inner join `tabCohort` ch on ch.name = co.cohort
+			inner join `tabProgramme` p on p.name = ch.programme
+			inner join `tabDepartment` d on d.name = p.department
+			where d.hod_user = {frappe.db.escape(user)}
+		)"""
+
+	if "Programme Coordinator" in roles:
+		return f"""`tabAttendance Summary`.course_offering in (
+			select co.name from `tabCourse Offering` co
+			inner join `tabCohort` ch on ch.name = co.cohort
+			inner join `tabProgramme` p on p.name = ch.programme
+			where p.coordinator_user = {frappe.db.escape(user)}
+		)"""
+
+	if "Lecturer" in roles:
+		return f"""`tabAttendance Summary`.course_offering in (
+			select col.parent from `tabCourse Offering Lecturer` col
+			inner join `tabLecturer` l on l.name = col.lecturer
+			where l.user = {frappe.db.escape(user)}
+		)"""
+
+	# Student role: self-view goes through the whitelisted student portal
+	# API (get_my_attendance), which resolves the caller's own Student
+	# record server-side — not through Desk/report access to this doctype.
+	return "1=0"
+
+
+# ---------------------------------------------------------------------------
 # Course Enrolment
 # ---------------------------------------------------------------------------
 
