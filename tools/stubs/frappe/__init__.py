@@ -45,7 +45,14 @@ def parse_json(value):
 class _UnimplementedStub:
 	"""Any attribute access returns a callable that raises — so a test that
 	accidentally exercises real frappe behavior fails loudly and clearly,
-	instead of silently doing nothing."""
+	instead of silently doing nothing. `escape` is a real (simplified)
+	implementation — real frappe.db.escape is just quote-and-escape, safe to
+	reproduce here, and several pure SQL-condition-building functions
+	(rub_attendance/permissions.py) call it directly with no other DB access,
+	so stubbing it for real lets those functions run under this harness."""
+
+	def escape(self, value, percent=True):
+		return "'" + str(value).replace("\\", "\\\\").replace("'", "\\'") + "'"
 
 	def __getattr__(self, name):
 		def _unimplemented(*args, **kwargs):
