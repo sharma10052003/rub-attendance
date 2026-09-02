@@ -1,0 +1,187 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "CS-.YYYY.-.#####",
+ "creation": "2026-09-02 00:00:00.000000",
+ "description": "One document per class meeting. The child table 'students' holds the whole roster's attendance for that meeting — never create a separate doctype per student per session (see SPEC.md scale rationale).",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "course_offering",
+  "scheduled_date",
+  "timetable_slot",
+  "column_break_1",
+  "status",
+  "is_adhoc",
+  "college",
+  "cancellation_section",
+  "cancellation_reason",
+  "rescheduled_to",
+  "submission_section",
+  "submitted_by",
+  "submitted_at",
+  "students_section",
+  "students"
+ ],
+ "fields": [
+  {
+   "fieldname": "course_offering",
+   "fieldtype": "Link",
+   "label": "Course Offering",
+   "options": "Course Offering",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "scheduled_date",
+   "fieldtype": "Date",
+   "label": "Scheduled Date",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "timetable_slot",
+   "fieldtype": "Link",
+   "label": "Timetable Slot",
+   "options": "Timetable Slot",
+   "description": "Left blank for an ad-hoc session that was never on the recurring timetable"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Scheduled",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Scheduled\nOpen\nSubmitted\nCancelled\nRescheduled",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_adhoc",
+   "fieldtype": "Check",
+   "label": "Is Ad-hoc Session",
+   "read_only": 1
+  },
+  {
+   "fieldname": "college",
+   "fieldtype": "Link",
+   "label": "College",
+   "options": "College",
+   "fetch_from": "course_offering.college",
+   "read_only": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "cancellation_section",
+   "fieldtype": "Section Break",
+   "label": "Cancellation / Reschedule",
+   "depends_on": "eval:doc.status==\"Cancelled\" || doc.status==\"Rescheduled\""
+  },
+  {
+   "fieldname": "cancellation_reason",
+   "fieldtype": "Small Text",
+   "label": "Cancellation / Reschedule Reason"
+  },
+  {
+   "fieldname": "rescheduled_to",
+   "fieldtype": "Link",
+   "label": "Rescheduled To",
+   "options": "Class Session",
+   "read_only": 1,
+   "description": "Set automatically when this session is rescheduled — points at the new ad-hoc session created for the new date"
+  },
+  {
+   "fieldname": "submission_section",
+   "fieldtype": "Section Break",
+   "label": "Submission"
+  },
+  {
+   "fieldname": "submitted_by",
+   "fieldtype": "Link",
+   "label": "Submitted By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "submitted_at",
+   "fieldtype": "Datetime",
+   "label": "Submitted At",
+   "read_only": 1,
+   "description": "Client-supplied timestamp — may predate the server receiving it if marked offline and synced later"
+  },
+  {
+   "fieldname": "students_section",
+   "fieldtype": "Section Break",
+   "label": "Roster"
+  },
+  {
+   "fieldname": "students",
+   "fieldtype": "Table",
+   "label": "Students",
+   "options": "Class Session Student"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-09-02 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Rub Attendance",
+ "name": "Class Session",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Registry",
+   "write": 1
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "HOD"
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "Programme Coordinator"
+  },
+  {
+   "amend": 1,
+   "create": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Lecturer",
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
