@@ -1,5 +1,10 @@
 # Phase 2 — Scheduling and Session Lifecycle
 
+> **CI status (2026-09-02): green.** Timetable Slot, Class Session, and Class Session Student
+> schemas are proven to sync on a real bench, and `test_generate_sessions` passes for real.
+> **Still not CI-covered:** running the generator against a real Semester/Timetable Slot with
+> real dates, and the cancel/reschedule flows — those need real data on a real site.
+
 ## What's built
 
 Three more doctypes in `apps/rub_attendance`:

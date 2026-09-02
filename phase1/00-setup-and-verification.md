@@ -1,5 +1,12 @@
 # Phase 1 — Setup, Running the Import, and What "Passes" Means
 
+> **CI status (2026-09-02): green.** [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)
+> now installs this app on a real Frappe bench (MariaDB + Redis, GitHub-hosted) and runs
+> `test_import_students` for real — not just reviewed. The doctype schemas (College through
+> Course Enrolment) are proven to sync cleanly. **Still not CI-covered:** actually running
+> `import_rosters` against the real `Student Data 2026/` spreadsheets — that needs a site with
+> real data, per the checklist below.
+
 ## What's built
 
 `apps/rub_attendance/` — a complete Frappe custom app: 12 doctypes (College, Department,

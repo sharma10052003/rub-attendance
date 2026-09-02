@@ -1,5 +1,12 @@
 # Phase 5 — Student Self-View, Disputes, Summary Aggregation
 
+> **CI status (2026-09-02): green.** Attendance Summary, Excused Absence, and Attendance
+> Dispute schemas sync on a real bench, and `test_attendance_summary` passes for real
+> (including the `compute_percentage` fix — see below, now double-confirmed by both the local
+> stub run and CI). **Still not CI-covered:** the `/my-attendance` page itself (no browser in
+> CI, same caveat as `/rollcall`), and the actual dispute → HOD-resolves → student-sees-it
+> round trip, which needs real data on a real site.
+
 ## What's built
 
 - **Attendance Summary** — the precomputed aggregate every dashboard/report/threshold-check

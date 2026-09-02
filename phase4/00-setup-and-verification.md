@@ -1,5 +1,19 @@
 # Phase 4 — Permission Isolation and Test Suite
 
+> **CI status (2026-09-02): green — including the integration suite.**
+> `test_permission_isolation` now runs against a real database on every push and passes. It
+> took five real, distinct bug fixes to get there (see the CI commit history from
+> `d5ed777` back to `9cdaa70`): a `before_install` ordering fix so custom roles exist before
+> permission sync, a missing `"name"` field in the role fixtures, a missing `Semester` in the
+> test's own fixture setup, and — the one an actual test caught, not review — **College
+> Administrator was missing from 15 doctypes' permissions** where the matrix below calls for
+> it, discovered because `test_college_admin_cannot_see_other_college_student` failed for real.
+> Two of the four originally-written test assertions also encoded a wrong assumption about
+> Frappe's API (`frappe.get_doc()` doesn't check permissions by itself) and were corrected.
+> **Still not CI-covered:** the two other leak paths SPEC.md asks for — `/api/resource` over
+> HTTP and Report View — the suite exercises the same underlying permission-check code path via
+> Python, which is strong evidence but not identical to an actual HTTP request.
+
 ## The key finding: college-level isolation is (almost) free
 
 Every doctype in this app carries a direct `college` Link field — a deliberate Phase 0 design

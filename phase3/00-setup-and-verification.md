@@ -1,5 +1,12 @@
 # Phase 3 — Lecturer Roll-Call Screen
 
+> **CI status (2026-09-02): green, but partial.** Attendance Policy, Attendance Correction
+> Request, and the Class Session lecturer-scope guard all sync and load correctly on a real
+> bench (proven indirectly — CI installs and migrates every doctype in the app). **Not
+> CI-covered at all:** the `/rollcall` page itself. CI never opens a browser — nobody has looked
+> at this page render, on a phone or otherwise. That still needs the manual check in the
+> checklist below before trusting it in a real classroom.
+
 ## What's built
 
 - **Attendance Policy** doctype — `minimum_percentage`, `late_counts_as`, `grace_window_hours`,

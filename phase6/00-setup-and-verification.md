@@ -1,5 +1,10 @@
 # Phase 6 — Reports and Exports
 
+> **CI status (2026-09-02): green.** All three report JSON/py files load correctly as part of
+> the app-wide install/migrate CI now does on every push. **Still not CI-covered:** actually
+> running each report with real data and filters, and the CSV/Excel export buttons — those need
+> a real site with real records, per the checklist below.
+
 ## What's built
 
 Three Frappe **Script Reports** (`is_standard: Yes`, so they load from these `.py` files, not
