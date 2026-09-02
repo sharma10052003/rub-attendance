@@ -9,7 +9,8 @@
   "department_name",
   "department_code",
   "college",
-  "is_active"
+  "is_active",
+  "hod_user"
  ],
  "fields": [
   {
@@ -40,6 +41,13 @@
    "fieldname": "is_active",
    "fieldtype": "Check",
    "label": "Is Active"
+  },
+  {
+   "fieldname": "hod_user",
+   "fieldtype": "Link",
+   "label": "HOD User Account",
+   "options": "User",
+   "description": "Used to scope who may approve Attendance Correction Requests and Attendance Disputes for this department, ahead of Phase 4's full permission hooks"
   }
  ],
  "index_web_pages_for_search": 1,

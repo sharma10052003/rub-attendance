@@ -1,0 +1,110 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "hash",
+ "creation": "2026-09-02 00:00:00.000000",
+ "description": "Never hard-code an attendance threshold or grace window in application code — always read it from here (rub_attendance.rub_attendance.doctype.attendance_policy.attendance_policy.get_policy). Leave Programme blank for the college-wide default; a programme-specific row overrides it.",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "programme",
+  "minimum_percentage",
+  "column_break_1",
+  "late_counts_as",
+  "grace_window_hours",
+  "correction_requires_approval"
+ ],
+ "fields": [
+  {
+   "fieldname": "programme",
+   "fieldtype": "Link",
+   "label": "Programme",
+   "options": "Programme",
+   "description": "Leave blank for the default policy that applies to every programme without its own row",
+   "in_standard_filter": 1
+  },
+  {
+   "default": "80",
+   "fieldname": "minimum_percentage",
+   "fieldtype": "Percent",
+   "label": "Minimum Attendance Percentage",
+   "reqd": 1,
+   "description": "ASSUMPTION — confirm the real RUB/Sherubtse policy threshold before go-live. Informational only: SPEC.md requires this system never bar a student from anything automatically."
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Absent",
+   "fieldname": "late_counts_as",
+   "fieldtype": "Select",
+   "label": "Late Counts As",
+   "options": "Present\nAbsent",
+   "reqd": 1,
+   "description": "How a 'Late' mark factors into the percentage calculation"
+  },
+  {
+   "default": "24",
+   "fieldname": "grace_window_hours",
+   "fieldtype": "Int",
+   "label": "Grace Window (hours)",
+   "reqd": 1,
+   "description": "How long after a session's scheduled_date a lecturer may edit Class Session Student rows directly, before a Correction Request is required"
+  },
+  {
+   "default": "1",
+   "fieldname": "correction_requires_approval",
+   "fieldtype": "Check",
+   "label": "Correction Requires HOD Approval"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-02 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Rub Attendance",
+ "name": "Attendance Policy",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Registry",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "HOD"
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "Lecturer"
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

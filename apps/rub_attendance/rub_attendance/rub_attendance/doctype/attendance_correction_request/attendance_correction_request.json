@@ -1,0 +1,161 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "hash",
+ "creation": "2026-09-02 00:00:00.000000",
+ "description": "For lecturer-initiated edits AFTER a session's grace window has passed (see Attendance Policy.grace_window_hours). Inside the window, the lecturer edits the Class Session Student row directly and Frappe's own version history captures it — no request needed.",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "class_session",
+  "student",
+  "column_break_1",
+  "original_status",
+  "requested_status",
+  "reason",
+  "section_break_1",
+  "requested_by",
+  "requested_at",
+  "column_break_2",
+  "approval_status",
+  "approved_by",
+  "approved_at"
+ ],
+ "fields": [
+  {
+   "fieldname": "class_session",
+   "fieldtype": "Link",
+   "label": "Class Session",
+   "options": "Class Session",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "student",
+   "fieldtype": "Link",
+   "label": "Student",
+   "options": "Student",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "original_status",
+   "fieldtype": "Select",
+   "label": "Original Status",
+   "options": "Present\nAbsent\nLate\nExcused",
+   "read_only": 1
+  },
+  {
+   "fieldname": "requested_status",
+   "fieldtype": "Select",
+   "label": "Requested Status",
+   "options": "Present\nAbsent\nLate\nExcused",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "reason",
+   "fieldtype": "Small Text",
+   "label": "Reason",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_1",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "requested_by",
+   "fieldtype": "Link",
+   "label": "Requested By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "requested_at",
+   "fieldtype": "Datetime",
+   "label": "Requested At",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Pending",
+   "fieldname": "approval_status",
+   "fieldtype": "Select",
+   "label": "Approval Status",
+   "options": "Pending\nApproved\nRejected",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "approved_by",
+   "fieldtype": "Link",
+   "label": "Approved/Rejected By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "approved_at",
+   "fieldtype": "Datetime",
+   "label": "Approved/Rejected At",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-02 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Rub Attendance",
+ "name": "Attendance Correction Request",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Registry",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "write": 1,
+   "role": "HOD"
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Lecturer"
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

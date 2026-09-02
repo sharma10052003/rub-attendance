@@ -1,0 +1,323 @@
+{% extends "templates/web.html" %}
+
+{% block title %}Roll Call{% endblock %}
+
+{% block page_content %}
+<style>
+	:root { --rc-gap: 12px; }
+	* { box-sizing: border-box; }
+	body { -webkit-text-size-adjust: 100%; }
+	.rc-wrap { max-width: 560px; margin: 0 auto; padding: var(--rc-gap); font-size: 16px; }
+	.rc-picker { display: flex; flex-direction: column; gap: var(--rc-gap); margin-bottom: 16px; }
+	.rc-picker select, .rc-picker input, .rc-picker button {
+		font-size: 16px; padding: 12px; border-radius: 8px; border: 1px solid #ccc; width: 100%;
+	}
+	.rc-load-btn { background: #2563eb; color: #fff; border: none; font-weight: 600; }
+	.rc-counts { display: flex; gap: 8px; margin: 12px 0; flex-wrap: wrap; }
+	.rc-count { flex: 1; min-width: 70px; text-align: center; padding: 8px 4px; border-radius: 8px; font-size: 13px; }
+	.rc-count b { display: block; font-size: 20px; }
+	.rc-count.present { background: #dcfce7; }
+	.rc-count.absent { background: #fee2e2; }
+	.rc-count.late { background: #fef9c3; }
+	.rc-count.excused { background: #e0e7ff; }
+	.rc-sync-banner {
+		display: none; background: #fef3c7; border: 1px solid #f59e0b; color: #78350f;
+		padding: 10px; border-radius: 8px; margin-bottom: 12px; font-size: 14px;
+	}
+	.rc-sync-banner.show { display: block; }
+	.rc-roster { list-style: none; margin: 0; padding: 0; }
+	.rc-row {
+		display: flex; align-items: center; justify-content: space-between;
+		padding: 10px 4px; border-bottom: 1px solid #eee;
+	}
+	.rc-row .rc-name { flex: 1; padding-right: 8px; }
+	.rc-status-btn {
+		min-width: 96px; padding: 10px 6px; border-radius: 8px; border: none;
+		font-weight: 600; font-size: 14px; color: #fff;
+	}
+	.rc-status-btn[data-status="Present"] { background: #16a34a; }
+	.rc-status-btn[data-status="Absent"] { background: #dc2626; }
+	.rc-status-btn[data-status="Late"] { background: #ca8a04; }
+	.rc-status-btn[data-status="Excused"] { background: #4f46e5; }
+	.rc-submit-bar {
+		position: sticky; bottom: 0; background: #fff; padding: 12px 0;
+		border-top: 1px solid #eee; margin-top: 12px;
+	}
+	.rc-submit-btn {
+		width: 100%; padding: 14px; font-size: 17px; font-weight: 700;
+		border: none; border-radius: 8px; background: #2563eb; color: #fff;
+	}
+	.rc-submit-btn:disabled { background: #93c5fd; }
+	.rc-status-line { font-size: 13px; color: #555; margin-top: 8px; text-align: center; }
+	.rc-hidden { display: none; }
+</style>
+
+<div class="rc-wrap">
+	<h2>Roll Call</h2>
+
+	{% if no_lecturer_record %}
+	<p>No Lecturer record is linked to your account. Ask Registry to link your user account
+	before you can take attendance.</p>
+	{% else %}
+
+	<div id="rc-sync-banner" class="rc-sync-banner">
+		<span id="rc-sync-text"></span>
+		<button id="rc-sync-now" type="button">Sync now</button>
+	</div>
+
+	<div class="rc-picker">
+		<select id="rc-course-offering">
+			<option value="">Select a class…</option>
+			{% for co in course_offerings %}
+			<option value="{{ co.name }}">{{ co.course_title }} — {{ co.cohort_label }} ({{ co.session_type }})</option>
+			{% endfor %}
+		</select>
+		<input type="date" id="rc-date" />
+		<button type="button" id="rc-load-btn" class="rc-load-btn">Open Class</button>
+	</div>
+
+	<div id="rc-session" class="rc-hidden">
+		<div class="rc-counts">
+			<div class="rc-count present"><b id="rc-count-present">0</b>Present</div>
+			<div class="rc-count absent"><b id="rc-count-absent">0</b>Absent</div>
+			<div class="rc-count late"><b id="rc-count-late">0</b>Late</div>
+			<div class="rc-count excused"><b id="rc-count-excused">0</b>Excused</div>
+		</div>
+
+		<ul id="rc-roster" class="rc-roster"></ul>
+
+		<div class="rc-submit-bar">
+			<button type="button" id="rc-submit-btn" class="rc-submit-btn">Submit Attendance</button>
+			<div id="rc-status-line" class="rc-status-line"></div>
+		</div>
+	</div>
+	{% endif %}
+</div>
+
+<script>
+(function () {
+	"use strict";
+	if ({{ "true" if no_lecturer_record else "false" }}) { return; }
+
+	var CSRF_TOKEN = "{{ csrf_token }}";
+	var STATUS_CYCLE = ["Present", "Absent", "Late", "Excused"];
+	var STORE_PREFIX = "rub_rollcall_";
+	var QUEUE_KEY = "rub_rollcall_pending_submits";
+
+	var state = { classSession: null, courseOffering: null, students: [] };
+
+	document.getElementById("rc-date").value = new Date().toISOString().slice(0, 10);
+
+	function callMethod(method, args) {
+		return fetch("/api/method/" + method, {
+			method: "POST",
+			credentials: "same-origin",
+			headers: {
+				"X-Frappe-CSRF-Token": CSRF_TOKEN,
+				"Content-Type": "application/json",
+				"Accept": "application/json",
+			},
+			body: JSON.stringify(args || {}),
+		}).then(function (res) {
+			if (!res.ok) {
+				return res.json().catch(function () { return {}; }).then(function (body) {
+					var err = new Error((body && body.exception) || ("HTTP " + res.status));
+					err.httpStatus = res.status;
+					throw err;
+				});
+			}
+			return res.json().then(function (data) { return data.message; });
+		});
+	}
+
+	function cacheKey(courseOffering, date) {
+		return STORE_PREFIX + courseOffering + "_" + date;
+	}
+
+	function saveLocal(courseOffering, date, data) {
+		try {
+			localStorage.setItem(cacheKey(courseOffering, date), JSON.stringify(data));
+		} catch (e) { /* storage full/unavailable — session still works, just not offline-resumable */ }
+	}
+
+	function loadLocal(courseOffering, date) {
+		try {
+			var raw = localStorage.getItem(cacheKey(courseOffering, date));
+			return raw ? JSON.parse(raw) : null;
+		} catch (e) { return null; }
+	}
+
+	function getQueue() {
+		try { return JSON.parse(localStorage.getItem(QUEUE_KEY) || "[]"); }
+		catch (e) { return []; }
+	}
+
+	function setQueue(queue) {
+		try { localStorage.setItem(QUEUE_KEY, JSON.stringify(queue)); } catch (e) { /* best effort */ }
+	}
+
+	function queueSubmit(payload) {
+		var queue = getQueue();
+		var existing = queue.findIndex(function (q) { return q.class_session === payload.class_session; });
+		if (existing >= 0) { queue[existing] = payload; } else { queue.push(payload); }
+		setQueue(queue);
+		updateSyncBanner();
+	}
+
+	function updateSyncBanner() {
+		var queue = getQueue();
+		var banner = document.getElementById("rc-sync-banner");
+		var text = document.getElementById("rc-sync-text");
+		if (queue.length === 0) {
+			banner.classList.remove("show");
+			return;
+		}
+		text.textContent = queue.length + " class" + (queue.length > 1 ? "es" : "") +
+			" not yet synced to the server.";
+		banner.classList.add("show");
+	}
+
+	function trySyncQueue() {
+		var queue = getQueue();
+		if (queue.length === 0 || !navigator.onLine) { return; }
+		var remaining = queue.slice();
+		var next = remaining.shift();
+		if (!next) { return; }
+		callMethod("rub_attendance.api.rollcall.submit", next)
+			.then(function () {
+				setQueue(remaining);
+				updateSyncBanner();
+				if (remaining.length > 0) { trySyncQueue(); }
+			})
+			.catch(function () { /* still offline or a real error — leave queued, retry later */ });
+	}
+
+	function render(data) {
+		state.classSession = data.class_session;
+		state.courseOffering = data.course_offering;
+		state.students = data.students;
+
+		document.getElementById("rc-session").classList.remove("rc-hidden");
+		var list = document.getElementById("rc-roster");
+		list.innerHTML = "";
+
+		data.students.forEach(function (s) {
+			var li = document.createElement("li");
+			li.className = "rc-row";
+
+			var name = document.createElement("span");
+			name.className = "rc-name";
+			name.textContent = s.student_name + " (" + s.student + ")";
+
+			var btn = document.createElement("button");
+			btn.type = "button";
+			btn.className = "rc-status-btn";
+			btn.dataset.student = s.student;
+			btn.dataset.status = s.status;
+			btn.textContent = s.status;
+			btn.addEventListener("click", function () { cycleStatus(btn); });
+
+			li.appendChild(name);
+			li.appendChild(btn);
+			list.appendChild(li);
+		});
+
+		updateCounts();
+		saveLocal(state.courseOffering, data.scheduled_date, data);
+	}
+
+	function cycleStatus(btn) {
+		var current = btn.dataset.status;
+		var next = STATUS_CYCLE[(STATUS_CYCLE.indexOf(current) + 1) % STATUS_CYCLE.length];
+		btn.dataset.status = next;
+		btn.textContent = next;
+		updateCounts();
+	}
+
+	function updateCounts() {
+		var counts = { Present: 0, Absent: 0, Late: 0, Excused: 0 };
+		document.querySelectorAll(".rc-status-btn").forEach(function (btn) {
+			counts[btn.dataset.status] = (counts[btn.dataset.status] || 0) + 1;
+		});
+		document.getElementById("rc-count-present").textContent = counts.Present;
+		document.getElementById("rc-count-absent").textContent = counts.Absent;
+		document.getElementById("rc-count-late").textContent = counts.Late;
+		document.getElementById("rc-count-excused").textContent = counts.Excused;
+	}
+
+	function loadSession() {
+		var courseOffering = document.getElementById("rc-course-offering").value;
+		var date = document.getElementById("rc-date").value;
+		if (!courseOffering || !date) {
+			alert("Pick a class and a date first.");
+			return;
+		}
+
+		var cached = loadLocal(courseOffering, date);
+		if (cached && !navigator.onLine) {
+			render(cached);
+			setStatusLine("Showing offline copy from this device — not yet synced with the server.");
+			return;
+		}
+
+		setStatusLine("Loading…");
+		callMethod("rub_attendance.api.rollcall.get_session", { course_offering: courseOffering, date: date })
+			.then(function (data) {
+				render(data);
+				setStatusLine("");
+			})
+			.catch(function (err) {
+				if (cached) {
+					render(cached);
+					setStatusLine("Could not reach the server — showing your last offline copy.");
+				} else {
+					setStatusLine("Could not load this class: " + err.message);
+				}
+			});
+	}
+
+	function setStatusLine(text) {
+		document.getElementById("rc-status-line").textContent = text;
+	}
+
+	function collectChangedRows() {
+		var rows = [];
+		document.querySelectorAll(".rc-status-btn").forEach(function (btn) {
+			rows.push({ student: btn.dataset.student, status: btn.dataset.status });
+		});
+		return rows;
+	}
+
+	function submitAttendance() {
+		var payload = {
+			class_session: state.classSession,
+			rows: collectChangedRows(),
+			client_marked_at: new Date().toISOString(),
+		};
+
+		setStatusLine("Submitting…");
+		callMethod("rub_attendance.api.rollcall.submit", payload)
+			.then(function (data) {
+				render(data);
+				setStatusLine("Submitted — status: " + data.status);
+			})
+			.catch(function (err) {
+				if (!navigator.onLine || err.httpStatus === undefined) {
+					queueSubmit(payload);
+					setStatusLine("No connection — saved on this device, will sync automatically.");
+				} else {
+					setStatusLine("Could not submit: " + err.message);
+				}
+			});
+	}
+
+	document.getElementById("rc-load-btn").addEventListener("click", loadSession);
+	document.getElementById("rc-submit-btn").addEventListener("click", submitAttendance);
+	document.getElementById("rc-sync-now").addEventListener("click", trySyncQueue);
+	window.addEventListener("online", trySyncQueue);
+
+	updateSyncBanner();
+	trySyncQueue();
+})();
+</script>
+{% endblock %}
