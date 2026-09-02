@@ -8,3 +8,9 @@ __pycache__/
 /tools/python312/
 /tools/python-embed.zip
 /tools/get-pip.py
+
+# Portable GitHub CLI, used only so this session can read Actions run logs
+# (auth token lives in the OS keyring, not in this repo either way).
+/tools/gh.zip
+/tools/gh_extracted/
+/tools/gh_login.log

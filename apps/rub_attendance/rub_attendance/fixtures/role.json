@@ -1,44 +1,44 @@
 [
  {
   "doctype": "Role",
+  "name": "RUB Academic Administrator",
   "role_name": "RUB Academic Administrator",
-  "desk_access": 1,
-  "is_custom": 1
+  "desk_access": 1
  },
  {
   "doctype": "Role",
+  "name": "College Administrator",
   "role_name": "College Administrator",
-  "desk_access": 1,
-  "is_custom": 1
+  "desk_access": 1
  },
  {
   "doctype": "Role",
+  "name": "HOD",
   "role_name": "HOD",
-  "desk_access": 1,
-  "is_custom": 1
+  "desk_access": 1
  },
  {
   "doctype": "Role",
+  "name": "Programme Coordinator",
   "role_name": "Programme Coordinator",
-  "desk_access": 1,
-  "is_custom": 1
+  "desk_access": 1
  },
  {
   "doctype": "Role",
+  "name": "Lecturer",
   "role_name": "Lecturer",
-  "desk_access": 1,
-  "is_custom": 1
+  "desk_access": 1
  },
  {
   "doctype": "Role",
+  "name": "Student",
   "role_name": "Student",
-  "desk_access": 0,
-  "is_custom": 1
+  "desk_access": 0
  },
  {
   "doctype": "Role",
+  "name": "Registry",
   "role_name": "Registry",
-  "desk_access": 1,
-  "is_custom": 1
+  "desk_access": 1
  }
 ]
