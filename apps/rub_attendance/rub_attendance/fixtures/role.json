@@ -1,0 +1,44 @@
+[
+ {
+  "doctype": "Role",
+  "role_name": "RUB Academic Administrator",
+  "desk_access": 1,
+  "is_custom": 1
+ },
+ {
+  "doctype": "Role",
+  "role_name": "College Administrator",
+  "desk_access": 1,
+  "is_custom": 1
+ },
+ {
+  "doctype": "Role",
+  "role_name": "HOD",
+  "desk_access": 1,
+  "is_custom": 1
+ },
+ {
+  "doctype": "Role",
+  "role_name": "Programme Coordinator",
+  "desk_access": 1,
+  "is_custom": 1
+ },
+ {
+  "doctype": "Role",
+  "role_name": "Lecturer",
+  "desk_access": 1,
+  "is_custom": 1
+ },
+ {
+  "doctype": "Role",
+  "role_name": "Student",
+  "desk_access": 0,
+  "is_custom": 1
+ },
+ {
+  "doctype": "Role",
+  "role_name": "Registry",
+  "desk_access": 1,
+  "is_custom": 1
+ }
+]

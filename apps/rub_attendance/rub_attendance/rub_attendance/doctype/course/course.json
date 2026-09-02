@@ -1,0 +1,95 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "field:course_code",
+ "creation": "2026-09-02 00:00:00.000000",
+ "description": "No confirmed digital source yet for the course catalog as of Phase 1 — see phase0/02-data-sources.md. Entered manually until the timetable source (.fet file behind sherubtsett.vercel.app, or its maintainer) is confirmed.",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "course_code",
+  "course_title",
+  "department",
+  "credit_hours"
+ ],
+ "fields": [
+  {
+   "fieldname": "course_code",
+   "fieldtype": "Data",
+   "label": "Course Code",
+   "reqd": 1,
+   "unique": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "course_title",
+   "fieldtype": "Data",
+   "label": "Course Title",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "department",
+   "fieldtype": "Link",
+   "label": "Department",
+   "options": "Department",
+   "reqd": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "credit_hours",
+   "fieldtype": "Float",
+   "label": "Credit Hours"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-02 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Rub Attendance",
+ "name": "Course",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Registry",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HOD",
+   "write": 1
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "Lecturer"
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

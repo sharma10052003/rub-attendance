@@ -1,0 +1,18 @@
+[project]
+name = "rub_attendance"
+authors = [
+    { name = "Sherubtse College ICT", email = "claude3.sherubtse@rub.edu.bt" }
+]
+description = "Standalone attendance system for the RUB Sherubtse College pilot"
+requires-python = ">=3.10"
+dynamic = ["version"]
+dependencies = [
+    "openpyxl~=3.1",
+]
+
+[build-system]
+requires = ["flit_core >=3.4,<4"]
+build-backend = "flit_core.buildapi"
+
+[tool.bench.frappe-dependencies]
+frappe = ">=15.0.0,<16.0.0"
