@@ -108,7 +108,14 @@ jobs:
           cp -r rub_attendance/apps/rub_attendance frappe-bench/apps/rub_attendance
           cd frappe-bench
           ./env/bin/pip install -e apps/rub_attendance
-          echo "rub_attendance" >> sites/apps.txt
+          # `echo >> apps.txt` alone bit us once already: if the existing
+          # file has no trailing newline, the appended line merges onto the
+          # previous one ("frappe" + "rub_attendance" -> the literal string
+          # "frapperub_attendance", which frappe then fails to import as a
+          # module). Force a newline first so the two app names can never
+          # collide onto one line.
+          printf '\nrub_attendance\n' >> sites/apps.txt
+          cat sites/apps.txt
 
       - name: Create the test site
         working-directory: frappe-bench
