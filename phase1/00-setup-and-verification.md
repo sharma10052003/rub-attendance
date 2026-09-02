@@ -81,6 +81,13 @@ overlapping/parallel folders per phase0/02-data-sources.md, and re-running is sa
 bench --site sherubtse.local run-tests --app rub_attendance --module rub_attendance.tests.test_import_students
 ```
 
+**Update:** these have now actually been run — not just reviewed — using a portable Python
+interpreter and a stub `frappe` package (no bench needed for pure-logic tests; see
+[tools/README.md](../tools/README.md)). All pass, including the two real Excel gotchas this
+suite exists to catch (leading-zero student IDs, filename-vs-title-text year fallback). The
+`bench run-tests` command above is still the one to run once a real site exists — it's the
+authoritative version — but this is no longer untested code.
+
 These cover the parsing/normalization logic only (programme identification, student ID
 zero-padding, gender normalization, the filename-vs-title-text fallback) — no database
 required. They do **not** cover the doctype layer (validate() hooks, uniqueness checks) —

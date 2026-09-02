@@ -3,14 +3,11 @@ Tests for the pure parsing/normalization logic in
 rub_attendance.setup.import_students — the parts that don't touch the
 database, so they can run without a live site.
 
-Run inside a bench:
+Run inside a real bench:
     bench --site <site> run-tests --app rub_attendance --module rub_attendance.tests.test_import_students
 
-Or with plain pytest, if the `frappe` package and this app are on
-PYTHONPATH (no live site/database needed for these specific tests):
-    pytest apps/rub_attendance/rub_attendance/tests/test_import_students.py
-
-Not runnable on this machine — no Python/bench installed here (see chat).
+Or locally with no bench at all — see tools/README.md:
+    tools/python312/python.exe -m unittest discover -s apps/rub_attendance/rub_attendance/tests -p "test_*.py"
 """
 
 import unittest

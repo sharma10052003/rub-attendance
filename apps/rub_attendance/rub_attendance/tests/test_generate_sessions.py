@@ -4,10 +4,11 @@ the weekday-name mapping, since a bug there would silently generate every
 session on the wrong day of the week and be easy to miss in a quick look at
 the output.
 
-Run inside a bench:
+Run inside a real bench:
     bench --site <site> run-tests --app rub_attendance --module rub_attendance.tests.test_generate_sessions
 
-Not runnable on this machine — no Python/bench installed here (see chat).
+Or locally with no bench at all — see tools/README.md:
+    tools/python312/python.exe -m unittest discover -s apps/rub_attendance/rub_attendance/tests -p "test_*.py"
 """
 
 import datetime

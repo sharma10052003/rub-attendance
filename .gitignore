@@ -2,3 +2,9 @@
 __pycache__/
 *.pyc
 .DS_Store
+
+# Portable interpreter used only to run pure-function tests locally on this
+# machine (no bench/WSL/Docker here) — not part of the app, never commit it.
+/tools/python312/
+/tools/python-embed.zip
+/tools/get-pip.py

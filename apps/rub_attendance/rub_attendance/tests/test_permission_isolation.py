@@ -14,12 +14,15 @@ phase0/05-permission-matrix.md:
       logged audit.view_student_record, which the last test verifies
       actually writes to Audit Log.
 
-Run inside a bench:
+Run inside a real bench:
     bench --site <site> run-tests --app rub_attendance --module rub_attendance.tests.test_permission_isolation
 
-Not runnable on this machine — no Python/bench installed here (see chat).
-Needs a real site: these tests create Users, User Permissions, and real
-records, and impersonate different logged-in users via frappe.set_user().
+This suite genuinely needs a real site — it creates Users, User
+Permissions, and real records, and impersonates different logged-in users
+via frappe.set_user(). The local no-bench runner (tools/README.md) can
+import this file and will reach frappe.set_user in setUpClass, but stops
+there with a clear NotImplementedError from the stub — that's expected,
+not a bug to chase; it's confirmation the test needs the real thing.
 """
 
 import frappe

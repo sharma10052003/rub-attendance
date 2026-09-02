@@ -2,10 +2,13 @@
 Tests for the pure percentage math in attendance_summary.compute_percentage
 — no database required.
 
-Run inside a bench:
+Run inside a real bench:
     bench --site <site> run-tests --app rub_attendance --module rub_attendance.tests.test_attendance_summary
 
-Not runnable on this machine — no Python/bench installed here (see chat).
+Or locally with no bench at all, using the portable interpreter + frappe
+stub under tools/ (see tools/README.md) — this is what actually verified
+this file:
+    tools/python312/python.exe -m unittest discover -s apps/rub_attendance/rub_attendance/tests -p "test_*.py"
 """
 
 import unittest
@@ -16,8 +19,12 @@ from rub_attendance.rub_attendance.doctype.attendance_summary.attendance_summary
 
 
 class TestComputePercentage(unittest.TestCase):
-	def test_no_sessions_is_zero_not_divide_by_zero(self):
-		self.assertEqual(compute_percentage({}, 0, "Absent"), 0.0)
+	def test_no_sessions_yet_is_100_not_a_divide_by_zero_and_not_a_red_flag(self):
+		# Same reasoning as the all-excused case below: a brand new summary
+		# with nothing recorded yet has no countable sessions, so it must
+		# not divide by zero, and showing 0% would misrepresent "no data"
+		# as "never showed up."
+		self.assertEqual(compute_percentage({}, 0, "Absent"), 100.0)
 
 	def test_all_present(self):
 		counts = {"Present": 10, "Absent": 0, "Late": 0, "Excused": 0}

@@ -54,6 +54,11 @@ bench --site sherubtse.local execute rub_attendance.setup.generate_sessions.gene
 bench --site sherubtse.local run-tests --app rub_attendance --module rub_attendance.tests.test_generate_sessions
 ```
 
+**Update:** the weekday-mapping tests have actually been run locally (no bench) via
+[tools/README.md](../tools/README.md)'s portable interpreter — both pass, including the check
+that `WEEKDAY_NAMES` actually lines up with Python's `date.weekday()` convention. The generator
+itself (the DB-touching part) still needs a real bench to verify.
+
 ## What "Phase 2 passes" requires (per SPEC.md's roadmap table)
 
 > "A real week of the real timetable generates correctly, holidays included."

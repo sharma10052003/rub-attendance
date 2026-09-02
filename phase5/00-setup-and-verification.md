@@ -60,10 +60,15 @@ mechanism.
       `get_dispute_status` reflects Resolved when the student checks back.
 - [ ] Separately: get an `Attendance Correction Request` approved (Phase 3 flow) and confirm
       `Attendance Summary` updates immediately, not just after the nightly job.
-- [ ] Test suite passes: `bench --site <site> run-tests --app rub_attendance --module rub_attendance.tests.test_attendance_summary`
+- [x] Test suite passes: `bench --site <site> run-tests --app rub_attendance --module rub_attendance.tests.test_attendance_summary`
+      — actually run locally (no bench) via [tools/README.md](../tools/README.md), and it
+      caught a real bug: `compute_percentage`'s zero-sessions case originally returned 0.0,
+      inconsistent with the all-excused case returning 100.0. Fixed to return 100.0 in both
+      (no countable sessions yet shouldn't read as a red flag) — the test now asserts the
+      corrected behavior instead of the old one.
 
-Same standing blocker as every phase: no running bench on this machine to actually execute any
-of the above.
+Everything else in this checklist still needs a real running bench, which is still the standing
+blocker.
 
 ## What's still not built (deliberately — not this phase's scope)
 
