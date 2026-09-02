@@ -1,0 +1,139 @@
+name: CI
+
+# This is the first REAL verification of rub_attendance against an actual
+# Frappe bench with a real MariaDB/Redis stack. Every phase so far was
+# built and reviewed on a Windows machine with no Python, WSL, or Docker —
+# nothing had ever been migrated, installed, or run against a database
+# until this workflow. GitHub's Ubuntu runners have the admin rights this
+# project's dev machine doesn't, so this is where that finally happens.
+#
+# Expect the first few runs to need fixes — bench/MariaDB/Redis version
+# pinning is fiddly to get right blind. A red run here is far more useful
+# than the untested-but-plausible state every phase shipped in before this.
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      mysql:
+        image: mariadb:10.6
+        env:
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+      redis-cache:
+        image: redis:alpine
+        ports:
+          - 13000:6379
+
+      redis-queue:
+        image: redis:alpine
+        ports:
+          - 11000:6379
+
+    steps:
+      - name: Checkout rub_attendance
+        uses: actions/checkout@v4
+        with:
+          path: rub_attendance
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            redis-server mariadb-client libmysqlclient-dev \
+            wkhtmltopdf cron
+
+      - name: Install wheel/bench
+        run: pip install --upgrade pip wheel frappe-bench
+
+      - name: Install yarn
+        run: npm install -g yarn
+
+      - name: Wait for MariaDB
+        run: |
+          until mysqladmin ping -h 127.0.0.1 -P 3306 -uroot -proot --silent; do
+            echo "waiting for mariadb..."; sleep 2
+          done
+
+      - name: Init bench (pulls Frappe framework itself)
+        run: |
+          bench init \
+            --skip-redis-config-generation \
+            --python "$(which python3)" \
+            --frappe-branch version-15 \
+            frappe-bench
+
+      - name: Point bench at the service containers
+        working-directory: frappe-bench
+        run: |
+          bench set-mariadb-host 127.0.0.1
+          bench set-redis-cache-host redis://localhost:13000
+          bench set-redis-queue-host redis://localhost:11000
+          bench set-redis-socketio-host redis://localhost:13000
+          sed -i '/redis_socketio/d' sites/common_site_config.json
+
+      - name: Add rub_attendance as an app in this bench
+        run: |
+          cp -r rub_attendance frappe-bench/apps/rub_attendance
+          cd frappe-bench
+          ./env/bin/pip install -e apps/rub_attendance
+          echo "rub_attendance" >> sites/apps.txt
+
+      - name: Create the test site
+        working-directory: frappe-bench
+        run: |
+          bench new-site test-site.local \
+            --mariadb-root-password root \
+            --admin-password admin \
+            --no-mariadb-socket \
+            --set-default
+
+      - name: Install rub_attendance on the test site
+        working-directory: frappe-bench
+        run: bench --site test-site.local install-app rub_attendance
+
+      - name: Run the pure-logic test suites
+        working-directory: frappe-bench
+        run: |
+          bench --site test-site.local run-tests --app rub_attendance --module rub_attendance.tests.test_import_students
+          bench --site test-site.local run-tests --app rub_attendance --module rub_attendance.tests.test_generate_sessions
+          bench --site test-site.local run-tests --app rub_attendance --module rub_attendance.tests.test_attendance_summary
+
+      - name: Run the permission isolation suite (the one that needed a real bench)
+        working-directory: frappe-bench
+        run: bench --site test-site.local run-tests --app rub_attendance --module rub_attendance.tests.test_permission_isolation
+
+      - name: Show bench log on failure
+        if: failure()
+        working-directory: frappe-bench
+        run: |
+          echo "---- bench.log ----"
+          cat logs/bench.log 2>/dev/null || true
+          echo "---- worker.error.log ----"
+          cat logs/worker.error.log 2>/dev/null || true
