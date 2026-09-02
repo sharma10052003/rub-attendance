@@ -5,7 +5,16 @@ app_description = "Standalone attendance system for the RUB Sherubtse College pi
 app_email = "claude3.sherubtse@rub.edu.bt"
 app_license = "mit"
 
-# Roles, once created via the Desk UI or migrated in from fixtures, are kept in sync here.
+# Custom roles must exist BEFORE doctype/permission sync runs, because that
+# sync writes each doctype's "permissions" list as DocPerm rows — and a
+# DocPerm.role pointing at a Role that doesn't exist yet fails Link
+# validation. Fixtures import happens AFTER doctype sync during
+# `bench install-app`, so fixtures alone are too late for a fresh install;
+# before_install creates the same roles earlier. Fixtures are kept too, so
+# `bench migrate` (and anyone diffing this app's fixtures against the site)
+# still has a canonical, versioned copy of these role definitions.
+before_install = "rub_attendance.install.before_install"
+
 fixtures = [
 	{"doctype": "Role", "filters": [["role_name", "in", [
 		"RUB Academic Administrator",

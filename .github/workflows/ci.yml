@@ -130,6 +130,10 @@ jobs:
         working-directory: frappe-bench
         run: bench --site test-site.local install-app rub_attendance
 
+      - name: Migrate (fixtures, patches)
+        working-directory: frappe-bench
+        run: bench --site test-site.local migrate
+
       - name: Run the pure-logic test suites
         working-directory: frappe-bench
         run: |
@@ -142,10 +146,25 @@ jobs:
         run: bench --site test-site.local run-tests --app rub_attendance --module rub_attendance.tests.test_permission_isolation
 
       - name: Show bench log on failure
+        # Also written to the run's Summary tab (plain rendered markdown on
+        # the main run page), not just this step's own collapsible log —
+        # the collapsible per-step log view has turned out to be
+        # unreachable through this project's usual tooling (no GitHub
+        # login available there), so this is the fallback that stays
+        # readable without expanding anything.
         if: failure()
         working-directory: frappe-bench
         run: |
-          echo "---- bench.log ----"
-          cat logs/bench.log 2>/dev/null || true
-          echo "---- worker.error.log ----"
-          cat logs/worker.error.log 2>/dev/null || true
+          {
+            echo "## Bench failure diagnostics"
+            echo
+            echo "### logs/bench.log (last 150 lines)"
+            echo '```'
+            tail -n 150 logs/bench.log 2>/dev/null || echo "(no bench.log)"
+            echo '```'
+            echo
+            echo "### logs/worker.error.log (last 150 lines)"
+            echo '```'
+            tail -n 150 logs/worker.error.log 2>/dev/null || echo "(no worker.error.log)"
+            echo '```'
+          } | tee -a "$GITHUB_STEP_SUMMARY"
