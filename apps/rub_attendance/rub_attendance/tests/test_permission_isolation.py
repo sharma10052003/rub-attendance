@@ -147,11 +147,26 @@ class TestPermissionIsolation(FrappeTestCase):
 			}
 		).insert(ignore_permissions=True).name
 
+		cls.academic_year = frappe.get_doc(
+			{"doctype": "Academic Year", "year_name": "TEST2026"}
+		).insert(ignore_permissions=True).name
+		cls.semester = frappe.get_doc(
+			{
+				"doctype": "Semester",
+				"semester_name": "Test Autumn 2026",
+				"academic_year": cls.academic_year,
+				"term": "Autumn",
+				"start_date": "2026-09-01",
+				"end_date": "2026-12-15",
+			}
+		).insert(ignore_permissions=True).name
+
 		co = frappe.get_doc(
 			{
 				"doctype": "Course Offering",
 				"course": cls.course_a,
 				"cohort": cls.cohort_a,
+				"semester": cls.semester,
 				"session_type": "Lecture",
 			}
 		)
