@@ -1,22 +1,22 @@
 """
 Phase 1 student roster importer.
 
-Targets the per-programme/section roster spreadsheets already in use at
-Sherubtse College (see phase0/02-data-sources.md), e.g.:
+Targets the real RUB IMS roster export format (confirmed 2026-09-03 against
+actual files from C:\\IMS\\NEW STUDENT UPDATED\\ — this is the second format
+this importer has had to match; see the "format history" note below), e.g.:
     "1.BSc in DSDA Section A.xlsx"
-    "3.BA in DCPM Year 1 Sem. I - Autumn 2026.xlsx"
+    "3.BA in DCPM Year 1 Sem I - Autumn 2026.xlsx"
 
-Usage, from a real Frappe bench (this file cannot be executed on this
-Windows machine — no bench/WSL/Docker here, see the chat for setup options):
+Usage, from a real Frappe bench:
 
     # Always dry-run first. Nothing is written to the database.
     bench --site <site> execute rub_attendance.setup.import_students.import_rosters \
-        --kwargs "{'source_dir': '/path/to/Student Data 2026', 'dry_run': True}"
+        --kwargs "{'source_dir': '/path/to/roster/folder', 'dry_run': True}"
 
     # Once the dry-run report looks right, run for real. Safe to re-run —
     # upserts are keyed on student_id, so re-running never duplicates.
     bench --site <site> execute rub_attendance.setup.import_students.import_rosters \
-        --kwargs "{'source_dir': '/path/to/Student Data 2026', 'dry_run': False}"
+        --kwargs "{'source_dir': '/path/to/roster/folder', 'dry_run': False}"
 
 Before the first real run: create the Programme (and its Department) records
 in Desk for every programme you're about to import. This importer will not
@@ -24,9 +24,25 @@ create them for you — which department owns which programme is a decision
 for a person, not a guess baked into an import script. A roster whose
 programme isn't found is reported as a skipped file, never invented.
 
+## Format history — read this before "fixing" a parsing bug
+
+Phase 1 was originally built against roster files that had columns
+"Sl. No. / Std. No. / Name / Gender / Scholarship" and no Programme column
+at all — programme/year/section had to be parsed out of the filename and a
+title string inside the sheet. The REAL IMS export (confirmed against
+actual files, not samples) turned out to be a completely different, better
+format: "Old Student ID / First Name / Gender / ... / Programme / ... /
+Student Email Address / ...", where "Programme" is a clean column like
+"Bachelor of Data Science and Data Analytics - 2026" and there's a real
+institutional email column. This importer now handles BOTH — it prefers the
+Programme column when present (far more reliable than filename parsing) and
+falls back to filename/title-text parsing only when that column is absent.
+Don't delete the fallback path without confirming no roster in active use
+still needs it.
+
 Two more deliberate limits, both explained in phase0/02-data-sources.md:
 - The "New admission with student numbers.xlsx" master file has a different
-  column layout than the per-section rosters and is not handled here.
+  column layout than the per-programme rosters and is not handled here.
 - Student names are not split into first/last. Bhutanese given names are
   frequently two or three words with no Western first/last structure, so
   the full name is stored as-is in Student.first_name and Student.last_name
@@ -42,11 +58,16 @@ import frappe
 STUDENT_ID_LENGTH = 8
 
 # Known programme name fragments -> Programme.programme_code.
-# Extend this as new programmes are piloted. A roster whose filename/title
-# matches none of these is reported as an error, never guessed.
+# Matched against BOTH the "Programme" column ("Bachelor of Data Science and
+# Data Analytics - 2026", "BSc in Mathematics - 2026") and, as a fallback,
+# the filename/sheet title. Extend this as new programmes are piloted — a
+# roster that matches none of these is reported as an error, never guessed.
 KNOWN_PROGRAMMES = {
+	"DATA SCIENCE AND DATA ANALYTICS": "DSDA",
 	"DSDA": "DSDA",
+	"DIGITAL COMMUNICATION AND PROJECT MANAGEMENT": "DCPM",
 	"DCPM": "DCPM",
+	"ECONOMICS AND POLITICAL SCIENCE": "EPS",
 	"EPS": "EPS",
 	"MATHEMATICS": "MATH",
 	"CHEMISTRY": "CHEM",
@@ -55,14 +76,20 @@ KNOWN_PROGRAMMES = {
 }
 
 HEADER_ALIASES = {
-	"student_id": {"std. no.", "std no", "std no.", "student id", "student no", "student no."},
-	"name": {"name", "student name"},
+	"student_id": {
+		"std. no.", "std no", "std no.", "student id", "student no", "student no.",
+		"old student id",
+	},
+	"name": {"name", "student name", "first name"},
 	"gender": {"gender", "sex"},
+	"email": {"student email address", "email", "email address"},
+	"programme": {"programme", "program"},
 }
 
 SECTION_PATTERN = re.compile(r"Section\s*([A-Za-z])", re.IGNORECASE)
 YEAR_PATTERN = re.compile(r"(20\d{2})")
 TERM_PATTERN = re.compile(r"(Autumn|Spring|Summer)", re.IGNORECASE)
+PROGRAMME_YEAR_SUFFIX = re.compile(r"^(.*?)\s*-\s*(20\d{2})\s*$")
 
 
 @dataclass
@@ -99,14 +126,35 @@ def identify_programme(text: str):
 	return None
 
 
-def parse_roster_identity(path: Path, title_text: str = ""):
-	"""Return (identity_dict, warnings) or (None, errors) for a roster file.
+def parse_programme_column(value: str):
+	"""Parse a "Programme" column value like "Bachelor of Data Science and
+	Data Analytics - 2026" or "BSc in Mathematics - 2026" into
+	(programme_code, intake_year), or (None, error) if unrecognized.
+	This is the primary identity source when the column is present — it's
+	per-row data straight from the IMS, not a guess parsed from a filename."""
+	if not value:
+		return None, "empty Programme column value"
 
-	Matches against the filename AND the sheet's own title text, because real
-	Sherubtse roster files are inconsistent about which one carries the year —
-	e.g. "1.BSc in DSDA Section A.xlsx" has no year in its filename at all,
-	but its sheet contains the string "Bachelor of Data Science and Data
-	Analytics - 2026"."""
+	match = PROGRAMME_YEAR_SUFFIX.match(str(value).strip())
+	if not match:
+		return None, f"Programme column value {value!r} doesn't end in ' - YYYY'"
+
+	name_part, year = match.group(1), int(match.group(2))
+	code = identify_programme(name_part)
+	if not code:
+		return None, (
+			f"Could not identify a known programme in Programme column value "
+			f"{value!r}. Add it to KNOWN_PROGRAMMES in import_students.py if "
+			f"this is a new programme."
+		)
+	return {"programme_code": code, "intake_year": year}, None
+
+
+def parse_roster_identity(path: Path, title_text: str = ""):
+	"""Fallback identity parser for rosters with no Programme column — the
+	original format this importer was built against. Matches against the
+	filename AND the sheet's own title text, because those files were
+	inconsistent about which one carries the year."""
 	text = f"{path.stem} {title_text}"
 
 	programme_code = identify_programme(text)
@@ -123,25 +171,24 @@ def parse_roster_identity(path: Path, title_text: str = ""):
 	if errors:
 		return None, errors
 
-	section_match = SECTION_PATTERN.search(text)
-	term_match = TERM_PATTERN.search(text)
-
-	warnings = []
-	if section_match:
-		section = section_match.group(1).upper()
-	else:
-		section = "A"
-		warnings.append(
-			f"No 'Section X' found in '{path.name}' — assumed Section A "
-			f"(treated as a single-section programme). Verify this is correct."
-		)
-
 	return {
 		"programme_code": programme_code,
 		"intake_year": int(year_match.group(1)),
-		"section": section,
-		"term": term_match.group(1).title() if term_match else None,
-	}, warnings
+	}, []
+
+
+def parse_section(path: Path, title_text: str = ""):
+	"""Section is never a column in either roster format seen so far — always
+	parsed from the filename/title, defaulting to Section A (single-section
+	programme) with a warning when absent."""
+	text = f"{path.stem} {title_text}"
+	match = SECTION_PATTERN.search(text)
+	if match:
+		return match.group(1).upper(), []
+	return "A", [
+		f"No 'Section X' found in '{path.name}' — assumed Section A "
+		f"(treated as a single-section programme). Verify this is correct."
+	]
 
 
 def normalize_student_id(value):
@@ -168,10 +215,19 @@ def normalize_gender(value):
 	return None
 
 
+def normalize_email(value):
+	if not value:
+		return None
+	text = str(value).strip()
+	return text if "@" in text else None
+
+
 def read_roster_rows(path: Path):
-	"""Returns (col_index, data_rows, title_text). title_text is every string
-	cell found in rows before the header row — the sheet's title/caption, if
-	any — used as a fallback source for programme/year/section identity."""
+	"""Returns (col_index, data_rows, title_text). col_index always has
+	"student_id" and "name"; "gender", "email", and "programme" are present
+	only if that column exists in this particular file. title_text is every
+	string cell found in rows before the header row — used as a fallback
+	source for programme/year identity when there's no Programme column."""
 	from openpyxl import load_workbook
 
 	workbook = load_workbook(path, read_only=True, data_only=True)
@@ -200,7 +256,7 @@ def read_roster_rows(path: Path):
 		if not col_index:
 			raise ValueError(
 				f"Could not find a header row with recognizable columns "
-				f"(Std. No. / Name / Gender) in {path.name}"
+				f"(Old Student ID / Std. No., First Name / Name) in {path.name}"
 			)
 
 		data_rows = [row for row in row_iter if any(cell is not None for cell in row)]
@@ -235,7 +291,7 @@ def get_or_create_cohort(programme: str, intake_year: int, section: str, dry_run
 	return doc.name
 
 
-def upsert_student(student_id: str, name: str, gender, cohort_name: str, dry_run: bool, report: ImportReport):
+def upsert_student(student_id: str, name: str, gender, email, cohort_name: str, dry_run: bool, report: ImportReport):
 	existing = frappe.db.exists("Student", student_id)
 
 	if dry_run:
@@ -257,6 +313,8 @@ def upsert_student(student_id: str, name: str, gender, cohort_name: str, dry_run
 			doc.first_name = name
 			if gender:
 				doc.gender = gender
+			if email:
+				doc.institutional_email = email
 			doc.cohort = cohort_name
 			doc.save(ignore_permissions=True)
 			report.students_updated.append(student_id)
@@ -267,6 +325,7 @@ def upsert_student(student_id: str, name: str, gender, cohort_name: str, dry_run
 					"student_id": student_id,
 					"first_name": name,
 					"gender": gender,
+					"institutional_email": email,
 					"cohort": cohort_name,
 					"status": "Active",
 				}
@@ -296,7 +355,7 @@ def import_rosters(source_dir: str, dry_run: bool = True) -> dict:
 					"file": path.name,
 					"reason": (
 						"Admissions master file has a different column layout than the "
-						"per-section rosters — not handled by this importer. See "
+						"per-programme rosters — not handled by this importer. See "
 						"phase0/02-data-sources.md."
 					),
 				}
@@ -309,11 +368,25 @@ def import_rosters(source_dir: str, dry_run: bool = True) -> dict:
 			report.files_skipped.append({"file": path.name, "reason": str(e)})
 			continue
 
-		identity, notes = parse_roster_identity(path, title_text)
-		if identity is None:
-			report.files_skipped.append({"file": path.name, "reason": "; ".join(notes)})
-			continue
-		for note in notes:
+		# Prefer the real "Programme" column when present — it's per-row IMS
+		# data, not a guess parsed from a filename.
+		if "programme" in col_index and data_rows:
+			raw_programme_value = data_rows[0][col_index["programme"]]
+			identity, prog_error = parse_programme_column(raw_programme_value)
+			if identity is None:
+				report.files_skipped.append({"file": path.name, "reason": prog_error})
+				continue
+		else:
+			identity, notes = parse_roster_identity(path, title_text)
+			if identity is None:
+				report.files_skipped.append({"file": path.name, "reason": "; ".join(notes)})
+				continue
+			for note in notes:
+				report.warnings.append({"file": path.name, "warning": note})
+
+		section, section_notes = parse_section(path, title_text)
+		identity["section"] = section
+		for note in section_notes:
 			report.warnings.append({"file": path.name, "warning": note})
 
 		programme_name = frappe.db.get_value(
@@ -343,6 +416,9 @@ def import_rosters(source_dir: str, dry_run: bool = True) -> dict:
 			gender = normalize_gender(
 				row[col_index["gender"]] if "gender" in col_index else None
 			)
+			email = normalize_email(
+				row[col_index["email"]] if "email" in col_index else None
+			)
 
 			if not student_id:
 				report.row_errors.append(
@@ -363,7 +439,7 @@ def import_rosters(source_dir: str, dry_run: bool = True) -> dict:
 				)
 				continue
 
-			upsert_student(student_id, name, gender, cohort_name, dry_run, report)
+			upsert_student(student_id, name, gender, email, cohort_name, dry_run, report)
 
 		report.files_processed.append(path.name)
 

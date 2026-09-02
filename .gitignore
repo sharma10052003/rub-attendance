@@ -13,4 +13,8 @@ __pycache__/
 # (auth token lives in the OS keyring, not in this repo either way).
 /tools/gh.zip
 /tools/gh_extracted/
-/tools/gh_login.log
+/tools/*.log
+
+# Real student data (names, CID, scholarship info) staged here only to
+# upload into a test instance — never commit real student records.
+/tools/student_data_upload/
