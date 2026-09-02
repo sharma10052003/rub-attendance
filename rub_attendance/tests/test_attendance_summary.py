@@ -8,7 +8,7 @@ Run inside a real bench:
 Or locally with no bench at all, using the portable interpreter + frappe
 stub under tools/ (see tools/README.md) — this is what actually verified
 this file:
-    tools/python312/python.exe -m unittest discover -s apps/rub_attendance/rub_attendance/tests -p "test_*.py"
+    tools/python312/python.exe -m unittest discover -s rub_attendance/tests -p "test_*.py"
 """
 
 import unittest

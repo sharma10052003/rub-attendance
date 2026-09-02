@@ -38,7 +38,7 @@ Student/Course Offering/Class Session don't carry a direct Department field. `ru
 adds `get_permission_query_conditions` (filters list/report views) and `has_permission`
 (guards direct single-record access — the leak path a query condition alone doesn't cover) for
 Student, Cohort, Course Offering, Course Enrolment, and Class Session, wired into
-[hooks.py](../apps/rub_attendance/rub_attendance/hooks.py).
+[hooks.py](../rub_attendance/hooks.py).
 
 Two small fields were added retroactively to make this possible: `Department.hod_user` (Phase 3)
 and `Programme.coordinator_user` (this phase) — Phase 1's original doctypes had no way to

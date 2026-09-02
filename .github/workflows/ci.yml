@@ -99,13 +99,15 @@ jobs:
           sed -i '/redis_socketio/d' sites/common_site_config.json
 
       - name: Add rub_attendance as an app in this bench
-        # actions/checkout put the WHOLE repo at ./rub_attendance/ (the
-        # checkout `path:` above) — the actual Frappe app source is one
-        # level deeper, at ./rub_attendance/apps/rub_attendance/, alongside
-        # this repo's phase0-6 docs and tools/. Copy that inner path, not
-        # the checkout root.
+        # actions/checkout put the whole repo at ./rub_attendance/ (the
+        # checkout `path:` above). The Frappe app now lives at the repo
+        # ROOT (pyproject.toml + rub_attendance/ package right there,
+        # alongside phase0-6 docs and tools/) — moved there specifically so
+        # Frappe Cloud / `bench get-app` can consume this same repo
+        # directly, since both expect the app at the repo root, not nested
+        # under an apps/ subfolder.
         run: |
-          cp -r rub_attendance/apps/rub_attendance frappe-bench/apps/rub_attendance
+          cp -r rub_attendance frappe-bench/apps/rub_attendance
           cd frappe-bench
           ./env/bin/pip install -e apps/rub_attendance
           # `echo >> apps.txt` alone bit us once already: if the existing

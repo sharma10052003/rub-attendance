@@ -43,13 +43,18 @@ way to extend `sys.path` for it):
 
 ```
 ../stubs
-../../apps/rub_attendance
+../..
 ```
+
+(The app moved to the repo root after this was first written — it used to be nested under
+`apps/rub_attendance/`, moved out so Frappe Cloud/`bench get-app` can consume this same repo
+directly, since both expect the app at the repo root. If you're rebuilding this from scratch,
+the second path is just the repo root relative to `tools/python312/`.)
 
 ## Running the tests
 
 ```bash
-tools/python312/python.exe -m unittest discover -s apps/rub_attendance/rub_attendance/tests -p "test_*.py" -v
+tools/python312/python.exe -m unittest discover -s rub_attendance/tests -p "test_*.py" -v
 ```
 
 As of the last run: **23 of 24 tests pass for real** (not reviewed-and-assumed — actually
@@ -67,10 +72,10 @@ any `SyntaxError`, bad import, or `NameError` at module load time:
 ```bash
 tools/python312/python.exe -c "
 import importlib, pathlib
-root = pathlib.Path('apps/rub_attendance/rub_attendance')
+root = pathlib.Path('rub_attendance')
 failures = []
 for pyfile in sorted(root.rglob('*.py')):
-    rel = pyfile.relative_to('apps/rub_attendance')
+    rel = pyfile.relative_to('.')
     parts = list(rel.with_suffix('').parts)
     if parts[-1] == '__init__':
         parts = parts[:-1]

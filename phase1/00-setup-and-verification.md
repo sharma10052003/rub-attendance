@@ -9,28 +9,33 @@
 
 ## What's built
 
-`apps/rub_attendance/` — a complete Frappe custom app: 12 doctypes (College, Department,
+`rub_attendance/` (repo root) — a complete Frappe custom app: 12 doctypes (College, Department,
 Programme, Academic Year, Semester, Cohort, Student, Lecturer, Course, Course Offering,
 Course Offering Lecturer, Course Enrolment) plus the 7 roles from SPEC.md, plus a student
 roster importer (`rub_attendance/setup/import_students.py`) with dry-run mode, idempotent
-upsert, and pure-function tests.
+upsert, and pure-function tests. **This app lives at the repo root on purpose** — it used to be
+nested under `apps/rub_attendance/`, moved out specifically because Frappe Cloud and
+`bench get-app` both expect to find `pyproject.toml` and the app package directly at the
+repository root when adding a custom app from a git URL.
 
-**This machine has no Python, WSL, or Docker** — `bench` (Frappe's CLI) cannot run natively on
-Windows, so nothing above has been executed or tested against a real database yet. The code is
-written correctly against Frappe's actual doctype/controller conventions, but "written
-correctly" and "verified running" are different claims — don't take Phase 1 as done until
-you've actually run it, per one of the two paths below.
+**Update:** this is no longer untested. [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)
+installs this app on a real Frappe bench (MariaDB + Redis, GitHub-hosted) on every push and it's
+green — see the CI status note at the top of this doc. What CI does *not* prove is that it works
+on **your** deployment target with **your** real data — that's what the two paths below are for.
 
 ## Path A — Frappe Cloud (recommended; SPEC.md's own preference for a one-person maintainer)
 
-No local bench install at all. Frappe Cloud builds and hosts the site from a git repo.
+No local bench install at all. Frappe Cloud builds and hosts the site from this same git repo.
 
-1. Push `apps/rub_attendance` to a git repo (GitHub/GitLab — private is fine).
-2. Frappe Cloud → New Bench → attach that repo as a custom app → New Site → install
-   `rub_attendance` on it.
-3. Use the site's **Console** (or their bench-in-browser SSH) to run the importer commands
+1. Sign up at [frappecloud.com](https://frappecloud.com) (a free trial is available) — this step
+   needs a human, nobody else can do it for you.
+2. Frappe Cloud → New Bench → Add App → **Custom App** → paste this repo's URL
+   (`https://github.com/sharma10052003/rub-attendance`), branch `master`. It should detect
+   `rub_attendance` automatically since `pyproject.toml` is right at the repo root now.
+3. New Site → install `rub_attendance` on it.
+4. Use the site's **Console** (or their bench-in-browser SSH) to run the importer commands
    below.
-4. Backups, upgrades, and monitoring are handled by Frappe Cloud from day one — this directly
+5. Backups, upgrades, and monitoring are handled by Frappe Cloud from day one — this directly
    satisfies the SPEC.md operations requirement for a single maintainer.
 
 ## Path B — Local dev via WSL (if you want a local dev/staging environment too)
@@ -43,8 +48,10 @@ pip install frappe-bench
 bench init rub-bench --frappe-branch version-15
 cd rub-bench
 bench new-site sherubtse.local
-# copy or symlink apps/rub_attendance from this Windows folder into rub-bench/apps/rub_attendance
-bench get-app file:///mnt/c/Users/MATRIKA/Desktop/attendence\ system/apps/rub_attendance
+# clone this repo (or copy it from the Windows filesystem) so its root is the app:
+git clone https://github.com/sharma10052003/rub-attendance.git /tmp/rub-attendance
+cp -r /tmp/rub-attendance apps/rub_attendance
+./env/bin/pip install -e apps/rub_attendance
 bench --site sherubtse.local install-app rub_attendance
 bench --site sherubtse.local migrate
 ```

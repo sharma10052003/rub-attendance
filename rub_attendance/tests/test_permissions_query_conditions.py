@@ -16,7 +16,7 @@ Run inside a real bench:
     bench --site <site> run-tests --app rub_attendance --module rub_attendance.tests.test_permissions_query_conditions
 
 Or locally with no bench at all — see tools/README.md:
-    tools/python312/python.exe -m unittest discover -s apps/rub_attendance/rub_attendance/tests -p "test_*.py"
+    tools/python312/python.exe -m unittest discover -s rub_attendance/tests -p "test_*.py"
 """
 
 import unittest

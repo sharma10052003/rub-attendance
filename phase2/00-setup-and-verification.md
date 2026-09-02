@@ -7,7 +7,7 @@
 
 ## What's built
 
-Three more doctypes in `apps/rub_attendance`:
+Three more doctypes in `rub_attendance` (the app, at the repo root):
 
 - **Timetable Slot** — the recurring weekly pattern (course offering + day of week + time +
   room) that sessions get generated from.
