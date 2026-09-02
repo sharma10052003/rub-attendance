@@ -192,8 +192,11 @@ class TestPermissionIsolation(FrappeTestCase):
 		self.assertIn(self.student_a, visible)
 		self.assertNotIn(self.student_b, visible)
 
-		with self.assertRaises(frappe.PermissionError):
-			frappe.get_doc("Student", self.student_b)
+		# frappe.get_doc() alone never checks permissions — it's a raw load
+		# by name. The real enforcement point is doc.has_permission(), which
+		# is what Desk, /api/resource, and report view all actually call.
+		doc = frappe.get_doc("Student", self.student_b)
+		self.assertFalse(doc.has_permission("read"))
 
 	# -- Department isolation (HOD) -----------------------------------------
 
@@ -203,8 +206,8 @@ class TestPermissionIsolation(FrappeTestCase):
 		self.assertIn(self.student_a, visible)
 		self.assertNotIn(self.student_b, visible)
 
-		with self.assertRaises(frappe.PermissionError):
-			frappe.get_doc("Student", self.student_b)
+		doc = frappe.get_doc("Student", self.student_b)
+		self.assertFalse(doc.has_permission("read"))
 
 	def test_hod_cannot_write_other_department_course_offering(self):
 		frappe.set_user(self.hod_b_email)
@@ -253,11 +256,17 @@ class TestPermissionIsolation(FrappeTestCase):
 	# -- Student self-isolation (no Desk-level access at all) -----------------
 
 	def test_student_role_has_no_desk_list_access(self):
+		# The Student doctype grants the Student role zero DocPerm rows at
+		# all (self-service goes through the whitelisted student portal API
+		# instead — see api/student_portal.py). With no permission rule
+		# granting "read" at all, frappe.get_list refuses outright rather
+		# than silently returning an empty list — a stronger guarantee than
+		# "you'd just see nothing," and the one actually worth asserting.
 		student_user_email = "student-a@example.test"
 		_make_user(student_user_email, ["Student"])
 		frappe.set_user(student_user_email)
-		visible = frappe.get_list("Student", pluck="name")
-		self.assertEqual(visible, [])
+		with self.assertRaises(frappe.PermissionError):
+			frappe.get_list("Student", pluck="name")
 
 	# -- RUB Academic Administrator: no raw access, only the logged path ------
 
@@ -265,8 +274,12 @@ class TestPermissionIsolation(FrappeTestCase):
 		email = "rub-admin@example.test"
 		_make_user(email, ["RUB Academic Administrator"])
 		frappe.set_user(email)
-		with self.assertRaises(frappe.PermissionError):
-			frappe.get_doc("Student", self.student_a)
+		# No doctype in this app grants RUB Academic Administrator direct
+		# read on Student (check student.json — it isn't there). get_doc()
+		# itself doesn't check permissions; has_permission() does, and is
+		# what Desk/API/report view actually call.
+		doc = frappe.get_doc("Student", self.student_a)
+		self.assertFalse(doc.has_permission("read"))
 
 	def test_rub_admin_logged_drill_down_writes_audit_log(self):
 		from rub_attendance.api.audit import view_student_record

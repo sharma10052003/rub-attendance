@@ -3,7 +3,7 @@
  "allow_rename": 0,
  "autoname": "field:course_code",
  "creation": "2026-09-02 00:00:00.000000",
- "description": "No confirmed digital source yet for the course catalog as of Phase 1 — see phase0/02-data-sources.md. Entered manually until the timetable source (.fet file behind sherubtsett.vercel.app, or its maintainer) is confirmed.",
+ "description": "No confirmed digital source yet for the course catalog as of Phase 1 \u00e2\u20ac\u201d see phase0/02-data-sources.md. Entered manually until the timetable source (.fet file behind sherubtsett.vercel.app, or its maintainer) is confirmed.",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
@@ -86,6 +86,30 @@
    "read": 1,
    "report": 1,
    "role": "Lecturer"
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "College Administrator",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Programme Coordinator",
+   "share": 1,
+   "write": 1
   }
  ],
  "sort_field": "modified",

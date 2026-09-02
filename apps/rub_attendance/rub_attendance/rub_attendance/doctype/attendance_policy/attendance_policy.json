@@ -3,7 +3,7 @@
  "allow_rename": 0,
  "autoname": "hash",
  "creation": "2026-09-02 00:00:00.000000",
- "description": "Never hard-code an attendance threshold or grace window in application code — always read it from here (rub_attendance.rub_attendance.doctype.attendance_policy.attendance_policy.get_policy). Leave Programme blank for the college-wide default; a programme-specific row overrides it.",
+ "description": "Never hard-code an attendance threshold or grace window in application code \u00e2\u20ac\u201d always read it from here (rub_attendance.rub_attendance.doctype.attendance_policy.attendance_policy.get_policy). Leave Programme blank for the college-wide default; a programme-specific row overrides it.",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
@@ -29,7 +29,7 @@
    "fieldtype": "Percent",
    "label": "Minimum Attendance Percentage",
    "reqd": 1,
-   "description": "ASSUMPTION — confirm the real RUB/Sherubtse policy threshold before go-live. Informational only: SPEC.md requires this system never bar a student from anything automatically."
+   "description": "ASSUMPTION \u00e2\u20ac\u201d confirm the real RUB/Sherubtse policy threshold before go-live. Informational only: SPEC.md requires this system never bar a student from anything automatically."
   },
   {
    "fieldname": "column_break_1",
@@ -101,6 +101,11 @@
    "read": 1,
    "report": 1,
    "role": "Lecturer"
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "College Administrator"
   }
  ],
  "sort_field": "modified",

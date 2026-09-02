@@ -3,7 +3,7 @@
  "allow_rename": 0,
  "autoname": "hash",
  "creation": "2026-09-02 00:00:00.000000",
- "description": "For lecturer-initiated edits AFTER a session's grace window has passed (see Attendance Policy.grace_window_hours). Inside the window, the lecturer edits the Class Session Student row directly and Frappe's own version history captures it — no request needed.",
+ "description": "For lecturer-initiated edits AFTER a session's grace window has passed (see Attendance Policy.grace_window_hours). Inside the window, the lecturer edits the Class Session Student row directly and Frappe's own version history captures it \u00e2\u20ac\u201d no request needed.",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
@@ -153,6 +153,11 @@
    "read": 1,
    "report": 1,
    "role": "Lecturer"
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "College Administrator"
   }
  ],
  "sort_field": "modified",

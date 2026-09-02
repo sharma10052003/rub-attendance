@@ -3,7 +3,7 @@
  "allow_rename": 0,
  "autoname": "field:student_id",
  "creation": "2026-09-02 00:00:00.000000",
- "description": "CID/passport is deliberately not stored here per phase0/01-build-vs-reuse.md and 04-data-model.md — no proven need yet. Do not add it without re-checking that decision.",
+ "description": "CID/passport is deliberately not stored here per phase0/01-build-vs-reuse.md and 04-data-model.md \u00e2\u20ac\u201d no proven need yet. Do not add it without re-checking that decision.",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
@@ -103,7 +103,7 @@
    "label": "User Account",
    "options": "User",
    "read_only": 1,
-   "description": "Linked once a portal login is provisioned (Phase 5) — not required for Phase 1 import"
+   "description": "Linked once a portal login is provisioned (Phase 5) \u00e2\u20ac\u201d not required for Phase 1 import"
   },
   {
    "fieldname": "old_student_id",
@@ -159,6 +159,11 @@
    "read": 1,
    "report": 1,
    "role": "Lecturer"
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "College Administrator"
   }
  ],
  "sort_field": "modified",

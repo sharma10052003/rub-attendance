@@ -3,7 +3,7 @@
  "allow_rename": 0,
  "autoname": "hash",
  "creation": "2026-09-02 00:00:00.000000",
- "description": "The 'why' behind a Class Session Student row marked Excused. Marking Excused itself must stay exactly as easy as marking Absent in the roll-call screen (SPEC.md fairness rule) — this record is filled in afterward, not a gate in front of the mark.",
+ "description": "The 'why' behind a Class Session Student row marked Excused. Marking Excused itself must stay exactly as easy as marking Absent in the roll-call screen (SPEC.md fairness rule) \u00e2\u20ac\u201d this record is filled in afterward, not a gate in front of the mark.",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
@@ -101,6 +101,11 @@
    "report": 1,
    "role": "Lecturer",
    "write": 1
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "College Administrator"
   }
  ],
  "sort_field": "modified",

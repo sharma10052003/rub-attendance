@@ -102,6 +102,11 @@
    "read": 1,
    "report": 1,
    "role": "Lecturer"
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "College Administrator"
   }
  ],
  "sort_field": "modified",

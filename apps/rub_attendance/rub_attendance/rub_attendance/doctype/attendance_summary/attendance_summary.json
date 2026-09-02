@@ -3,7 +3,7 @@
  "allow_rename": 0,
  "autoname": "hash",
  "creation": "2026-09-02 00:00:00.000000",
- "description": "Precomputed only — never written to directly. Rebuilt by rub_attendance.rub_attendance.doctype.attendance_summary.attendance_summary.rebuild_summary after every Class Session submit/correction, and by the nightly scheduled job as a safety net. Every dashboard, report, and threshold check must read this table, never raw Class Session Student rows (SPEC.md performance rule).",
+ "description": "Precomputed only \u00e2\u20ac\u201d never written to directly. Rebuilt by rub_attendance.rub_attendance.doctype.attendance_summary.attendance_summary.rebuild_summary after every Class Session submit/correction, and by the nightly scheduled job as a safety net. Every dashboard, report, and threshold check must read this table, never raw Class Session Student rows (SPEC.md performance rule).",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
@@ -129,7 +129,7 @@
    "fieldtype": "Check",
    "label": "Below Policy Threshold",
    "read_only": 1,
-   "description": "Informational only — SPEC.md: the system flags, a human decides. Never used to bar exam eligibility automatically."
+   "description": "Informational only \u00e2\u20ac\u201d SPEC.md: the system flags, a human decides. Never used to bar exam eligibility automatically."
   }
  ],
  "index_web_pages_for_search": 0,
@@ -179,6 +179,11 @@
    "read": 1,
    "report": 1,
    "role": "RUB Academic Administrator"
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "College Administrator"
   }
  ],
  "sort_field": "modified",
