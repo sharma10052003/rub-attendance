@@ -18,6 +18,22 @@ fixtures = [
 	]]]},
 ]
 
-# Phase 4 will add permission query condition hooks here, per
-# phase0/05-permission-matrix.md, once the isolation test suite exists to
-# verify them. Not added yet — do not scope-creep Phase 1 into Phase 4.
+# College-level isolation needs no entry here — every doctype carries a
+# direct `college` Link field, so Frappe's native User Permission mechanism
+# filters it automatically. These hooks add the narrower-than-college
+# scoping (department/programme/lecturer-assignment) that Frappe can't
+# derive on its own. See rub_attendance/permissions.py and
+# phase0/05-permission-matrix.md.
+permission_query_conditions = {
+	"Student": "rub_attendance.permissions.student_query_conditions",
+	"Cohort": "rub_attendance.permissions.cohort_query_conditions",
+	"Course Offering": "rub_attendance.permissions.course_offering_query_conditions",
+	"Course Enrolment": "rub_attendance.permissions.course_enrolment_query_conditions",
+	"Class Session": "rub_attendance.permissions.class_session_query_conditions",
+}
+
+has_permission = {
+	"Student": "rub_attendance.permissions.student_has_permission",
+	"Course Offering": "rub_attendance.permissions.course_offering_has_permission",
+	"Class Session": "rub_attendance.permissions.class_session_has_permission",
+}

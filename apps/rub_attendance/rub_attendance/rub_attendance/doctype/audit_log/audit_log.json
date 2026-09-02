@@ -1,0 +1,76 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "hash",
+ "creation": "2026-09-02 00:00:00.000000",
+ "description": "Written only by rub_attendance.api.audit.view_student_record — the sole sanctioned path for a university-level role (RUB Academic Administrator) to open one student's individual attendance detail. Never write to this doctype directly; if you find code doing that outside api/audit.py, that's the bug to fix.",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "accessed_by",
+  "student",
+  "reason",
+  "accessed_at"
+ ],
+ "fields": [
+  {
+   "fieldname": "accessed_by",
+   "fieldtype": "Link",
+   "label": "Accessed By",
+   "options": "User",
+   "reqd": 1,
+   "read_only": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "student",
+   "fieldtype": "Link",
+   "label": "Student",
+   "options": "Student",
+   "reqd": 1,
+   "read_only": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "reason",
+   "fieldtype": "Small Text",
+   "label": "Stated Reason",
+   "reqd": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "accessed_at",
+   "fieldtype": "Datetime",
+   "label": "Accessed At",
+   "read_only": 1,
+   "in_list_view": 1
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-09-02 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Rub Attendance",
+ "name": "Audit Log",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 0,
+   "write": 0
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

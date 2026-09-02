@@ -11,7 +11,8 @@
   "department",
   "column_break_1",
   "college",
-  "is_active"
+  "is_active",
+  "coordinator_user"
  ],
  "fields": [
   {
@@ -55,6 +56,13 @@
    "fieldname": "is_active",
    "fieldtype": "Check",
    "label": "Is Active"
+  },
+  {
+   "fieldname": "coordinator_user",
+   "fieldtype": "Link",
+   "label": "Programme Coordinator User Account",
+   "options": "User",
+   "description": "Used to scope this programme's visibility to its Programme Coordinator (Phase 4 permission hooks)"
   }
  ],
  "index_web_pages_for_search": 1,
